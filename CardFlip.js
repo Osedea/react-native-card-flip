@@ -131,68 +131,76 @@ class CardFlip extends Component<Props> {
     Animated.sequence(sequence).start();
   }
 
-  flip() {
+  flip(animated = true) {
     if (this.props.flipDirection == "y") {
-      this.flipY();
+      this.flipY(animated);
     } else {
-      this.flipX();
+      this.flipX(animated);
     }
   }
 
-  flipY() {
+  flipY(animated = true) {
     const { side } = this.state;
     this._flipTo({
       x: 50,
       y: side === 0 ? 100 : 50
-    });
+    }, animated);
     this.setState({
       side: side === 0 ? 1 : 0,
       rotateOrientation: "y"
     });
   }
 
-  flipX() {
+  flipX(animated = true) {
     const { side } = this.state;
     this._flipTo({
       y: 50,
       x: side === 0 ? 100 : 50
-    });
+    }, animated);
     this.setState({
       side: (side === 0) ? 1 : 0,
       rotateOrientation: 'x',
     });
   }
 
-  _flipTo(toValue) {
+  _flipTo(toValue, animated = true) {
     const { duration, rotation, progress, zoom, side } = this.state;
     this.props.onFlip(side === 0 ? 1 : 0);
     this.props.onFlipStart(side === 0 ? 1 : 0);
-    Animated.parallel([
-      Animated.timing(progress, {
-        toValue: side === 0 ? 100 : 0,
-        duration,
-        useNativeDriver: true
-      }),
-      Animated.sequence([
-        Animated.timing(zoom, {
-          toValue: 100,
-          duration: duration / 2,
+
+    if (animated) {
+      Animated.parallel([
+        Animated.timing(progress, {
+          toValue: side === 0 ? 100 : 0,
+          duration,
           useNativeDriver: true
         }),
-        Animated.timing(zoom, {
-          toValue: 0,
-          duration: duration / 2,
+        Animated.sequence([
+          Animated.timing(zoom, {
+            toValue: 100,
+            duration: duration / 2,
+            useNativeDriver: true
+          }),
+          Animated.timing(zoom, {
+            toValue: 0,
+            duration: duration / 2,
+            useNativeDriver: true
+          })
+        ]),
+        Animated.timing(rotation, {
+          toValue,
+          duration: duration,
           useNativeDriver: true
         })
-      ]),
-      Animated.timing(rotation, {
-        toValue,
-        duration: duration,
-        useNativeDriver: true
-      })
-    ]).start(() => {
+      ]).start(() => {
+        this.props.onFlipEnd(side === 0 ? 1 : 0);
+      });
+    } else {
+      progress.setValue(side === 0 ? 100 : 0);
+      zoom.setValue(0);
+      rotation.setValue(toValue);
       this.props.onFlipEnd(side === 0 ? 1 : 0);
-    });
+    }
   }
 
   getCardATransformation() {
@@ -343,4 +351,4 @@ CardFlip.propTypes = {
 };
 
 polyfill(CardFlip)
-export default CardFlip 
+export default CardFlip

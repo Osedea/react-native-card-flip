@@ -17,7 +17,7 @@ export type FlipCardProps = {
 };
 
 declare class FlipCard extends Component<FlipCardProps> {
-  flip: () => void;
+  flip: (animated?: boolean) => void;
 
   tip: ({
     direction,
